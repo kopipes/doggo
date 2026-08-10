@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { JwtPayload } from '@dogreg/shared'
+import { JwtPayload } from '@petreg/shared'
 
 export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
   try {

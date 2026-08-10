@@ -1,4 +1,4 @@
-import { ApiResult } from '@dogreg/shared'
+import { ApiResult } from '@petreg/shared'
 
 const BASE = '/api'
 

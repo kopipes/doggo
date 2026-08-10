@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
-import { SystemSetting, SettingKey } from '@dogreg/shared'
+import { SystemSetting, SettingKey } from '@petreg/shared'
 
 const SETTING_LABELS: Record<Exclude<SettingKey, 'crew_link_base_url'>, { label: string; description: string }> = {
   confirmation_cc_email: { label: 'Confirmation Email CC', description: 'CC address for submission confirmation emails' },

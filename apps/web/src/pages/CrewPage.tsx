@@ -111,7 +111,7 @@ export default function CrewPage() {
       {!result && (
         <>
           <div className="text-center mb-6">
-            <img src="/logo.png" alt="DogReg" className="h-24 mx-auto mb-3 object-contain" />
+            <img src="/logo.png" alt="PetReg" className="h-24 mx-auto mb-3 object-contain" />
             <p className="t-text-muted text-xs mt-0.5">Race Day Crew Verification</p>
           </div>
 
@@ -172,7 +172,7 @@ export default function CrewPage() {
         <div className="w-full max-w-sm space-y-3">
           {/* Logo small */}
           <div className="text-center mb-2">
-            <img src="/logo.png" alt="DogReg" className="h-10 mx-auto object-contain opacity-70" />
+            <img src="/logo.png" alt="PetReg" className="h-10 mx-auto object-contain opacity-70" />
           </div>
 
           {/* Search again bar */}

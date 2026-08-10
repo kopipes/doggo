@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
-import { AuditEntry } from '@dogreg/shared'
+import { AuditEntry } from '@petreg/shared'
 
 export default function AuditPage() {
   const { token } = useAuth()

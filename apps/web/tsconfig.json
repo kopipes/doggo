@@ -13,7 +13,7 @@
     "jsx": "react-jsx",
     "strict": true,
     "paths": {
-      "@dogreg/shared": ["../../packages/shared/src/index.ts"]
+      "@petreg/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src"],

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
-import { StaffAccount, LoginResponse } from '@dogreg/shared'
+import { StaffAccount, LoginResponse } from '@petreg/shared'
 import { api } from '../lib/api'
 
 interface AuthContextValue {
@@ -15,17 +15,17 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<StaffAccount | null>(null)
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('dogreg_token'))
-  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('dogreg_token'))
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('petreg_token'))
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('petreg_token'))
 
   const logout = useCallback(() => {
-    localStorage.removeItem('dogreg_token')
+    localStorage.removeItem('petreg_token')
     setToken(null)
     setAccount(null)
   }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem('dogreg_token')
+    const stored = localStorage.getItem('petreg_token')
     if (!stored) {
       setLoading(false)
       return
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function login(username: string, password: string) {
     const res = await api.post<LoginResponse>('/auth/login', { username, password })
     if (!res.ok) throw new Error((res as any).error)
-    localStorage.setItem('dogreg_token', res.data.token)
+    localStorage.setItem('petreg_token', res.data.token)
     setToken(res.data.token)
     setAccount(res.data.account)
   }

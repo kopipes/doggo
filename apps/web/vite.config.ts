@@ -9,8 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'DogReg',
-        short_name: 'DogReg',
+        name: 'PetReg',
+        short_name: 'PetReg',
         description: 'Dog Run Race Registration & Verification',
         theme_color: '#1d4ed8',
         background_color: '#ffffff',
@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@dogreg/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
+      '@petreg/shared': path.resolve(__dirname, '../../packages/shared/src/index.ts'),
     },
   },
   server: {

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { getDb } from '../db/database'
 import { requireAdmin, requireOfficial } from '../middleware/auth'
-import { JwtPayload } from '@dogreg/shared'
+import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
 
 export async function bibRoutes(app: FastifyInstance) {

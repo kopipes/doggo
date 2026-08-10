@@ -16,7 +16,7 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.600.0
         version: 3.1106.0
-      '@dogreg/shared':
+      '@petreg/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@fastify/cors':
@@ -74,7 +74,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@dogreg/shared':
+      '@petreg/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       pdfjs-dist:

@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
 import { getDb } from '../db/database'
 import { requireAdmin } from '../middleware/auth'
-import { JwtPayload } from '@dogreg/shared'
+import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
 
 const MIN_PASSWORD_LENGTH = 8

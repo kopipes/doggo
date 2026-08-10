@@ -10,7 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "paths": {
-      "@dogreg/shared": ["../../packages/shared/src/index.ts"]
+      "@petreg/shared": ["../../packages/shared/src/index.ts"]
     }
   },
   "include": ["src", "../../packages/shared/src"],

@@ -20,7 +20,7 @@ const PORT = Number(process.env.PORT ?? 3001)
 
 async function main() {
   // Ensure data/uploads dirs exist
-  const dataDir = path.resolve(process.env.DB_PATH ?? './data/dogreg.db', '..')
+  const dataDir = path.resolve(process.env.DB_PATH ?? './data/petreg.db', '..')
   const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? './uploads')
   fs.mkdirSync(dataDir, { recursive: true })
   fs.mkdirSync(uploadDir, { recursive: true })

@@ -40,7 +40,7 @@ export async function sendSubmissionConfirmation(opts: {
   `
 
   await getTransport().sendMail({
-    from: process.env.EMAIL_FROM ?? 'noreply@dogreg.local',
+    from: process.env.EMAIL_FROM ?? 'noreply@petreg.local',
     to: opts.toEmail,
     cc: cc || undefined,
     subject: `[${opts.eventName}] Submission confirmed — Ticket ${opts.ticketId}`,

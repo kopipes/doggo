@@ -1,5 +1,5 @@
 import { getDb } from '../db/database'
-import { Role } from '@dogreg/shared'
+import { Role } from '@petreg/shared'
 
 export function audit(
   actorId: number | null,

@@ -1,5 +1,5 @@
 {
-  "name": "@dogreg/api",
+  "name": "@petreg/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
     "@aws-sdk/s3-request-presigner": "^3.600.0",
-    "@dogreg/shared": "workspace:*",
+    "@petreg/shared": "workspace:*",
     "@fastify/cors": "^9.0.1",
     "@fastify/jwt": "^8.0.1",
     "@fastify/multipart": "^8.3.0",

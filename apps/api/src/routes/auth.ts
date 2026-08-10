@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import bcrypt from 'bcrypt'
 import { getDb } from '../db/database'
-import { JwtPayload } from '@dogreg/shared'
+import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
 
 const DUMMY_HASH = '$2b$12$invalidhashfortimingsafety000000000000000000000000000000'

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
-import { ImportResult } from '@dogreg/shared'
+import { ImportResult } from '@petreg/shared'
 
 export default function ImportPage() {
   const { token } = useAuth()

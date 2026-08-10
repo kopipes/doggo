@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { getDb } from '../db/database'
 import { requireAdmin } from '../middleware/auth'
-import { JwtPayload, ImportResult } from '@dogreg/shared'
+import { JwtPayload, ImportResult } from '@petreg/shared'
 import { audit } from '../services/audit'
 import * as XLSX from 'xlsx'
 

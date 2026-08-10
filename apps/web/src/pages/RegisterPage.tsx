@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { api } from '../lib/api'
-import { Runner } from '@dogreg/shared'
+import { Runner } from '@petreg/shared'
 import { useTheme } from '../hooks/useTheme'
 
 const MAX_CERTS = 3
@@ -194,7 +194,7 @@ export default function RegisterPage() {
 
         {/* Header with logo */}
         <div className="text-center mb-6">
-          <img src="/logo.png" alt="DogReg" className="h-24 mx-auto mb-3 object-contain" />
+          <img src="/logo.png" alt="PetReg" className="h-24 mx-auto mb-3 object-contain" />
           <p className="t-text-muted text-sm mt-1">Participant Registration</p>
         </div>
 

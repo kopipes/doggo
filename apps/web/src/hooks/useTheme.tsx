@@ -11,7 +11,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('dogreg_theme') as Theme | null
+    const stored = localStorage.getItem('petreg_theme') as Theme | null
     if (stored) return stored
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
@@ -23,7 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.remove('dark')
     }
-    localStorage.setItem('dogreg_theme', theme)
+    localStorage.setItem('petreg_theme', theme)
   }, [theme])
 
   function toggle() {

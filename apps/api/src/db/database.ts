@@ -10,7 +10,7 @@ export function getDb(): Database.Database {
 }
 
 export function initDb(): Database.Database {
-  const dbPath = path.resolve(process.env.DB_PATH ?? './data/dogreg.db')
+  const dbPath = path.resolve(process.env.DB_PATH ?? './data/petreg.db')
   fs.mkdirSync(path.dirname(dbPath), { recursive: true })
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')

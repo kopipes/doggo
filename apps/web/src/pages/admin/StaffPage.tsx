@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
-import { StaffAccount, CrewToken } from '@dogreg/shared'
+import { StaffAccount, CrewToken } from '@petreg/shared'
 
 interface EditForm {
   email: string

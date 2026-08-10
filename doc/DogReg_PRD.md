@@ -1,4 +1,4 @@
-# DogReg
+# PetReg
 ### Product Requirements Document
 **Dog Run Race — Vaccine Certificate Registration & Verification System**
 
@@ -10,7 +10,7 @@ Date: August 10, 2026
 
 ## 1. Overview
 
-DogReg is the app that lets pre-registered dog run participants complete their profile online (vaccine certificate + dog photo), lets race officials assign a 4-digit bib number at gear pickup, and lets event crew verify a runner's identity by bib number on race day. The system must be fast, mobile-friendly, and built on a reliable database, since it will be used under time pressure at a physical event with variable connectivity.
+PetReg is the app that lets pre-registered dog run participants complete their profile online (vaccine certificate + dog photo), lets race officials assign a 4-digit bib number at gear pickup, and lets event crew verify a runner's identity by bib number on race day. The system must be fast, mobile-friendly, and built on a reliable database, since it will be used under time pressure at a physical event with variable connectivity.
 
 ### 1.1 Problem Statement
 

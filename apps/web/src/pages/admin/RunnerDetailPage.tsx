@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
-import { Runner } from '@dogreg/shared'
+import { Runner } from '@petreg/shared'
 import MediaModal from '../../components/MediaModal'
 
 const STATUS_OPTIONS = ['pending', 'submitted', 'verified', 'rejected']

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
-import { RunnerSummary } from '@dogreg/shared'
+import { RunnerSummary } from '@petreg/shared'
 
 const STATUS_BADGE: Record<string, string> = {
   pending:   't-badge-pending',

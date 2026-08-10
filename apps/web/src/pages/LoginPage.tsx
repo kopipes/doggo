@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="DogReg" className="h-24 mx-auto mb-3 object-contain" />
+          <img src="/logo.png" alt="PetReg" className="h-24 mx-auto mb-3 object-contain" />
           <p className="t-text-muted text-sm mt-1">Staff Portal</p>
         </div>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center t-text-muted text-xs mt-6">
-          DogReg · Race Management System
+          PetReg · Race Management System
         </p>
       </div>
     </div>
