@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light mode (default) */
+  :root {
+    --bg-base:      #f8fafc;
+    --bg-surface:   #ffffff;
+    --bg-raised:    #f1f5f9;
+    --bg-overlay:   rgba(0,0,0,0.04);
+    --border:       rgba(0,0,0,0.08);
+    --border-strong:rgba(0,0,0,0.14);
+    --text-primary: #0f172a;
+    --text-secondary:#475569;
+    --text-muted:   #94a3b8;
+    --sidebar-bg:   #ffffff;
+    --sidebar-border:rgba(0,0,0,0.07);
+    --nav-active-bg:rgba(59,130,246,0.10);
+    --nav-active-text:#1d4ed8;
+    --nav-active-border:rgba(59,130,246,0.25);
+    --nav-text:     #475569;
+    --nav-hover-bg: rgba(0,0,0,0.04);
+    --input-bg:     #f8fafc;
+    --input-border: rgba(0,0,0,0.12);
+    --card-bg:      #ffffff;
+    --table-header-bg: #f8fafc;
+    --table-row-hover: rgba(0,0,0,0.025);
+    --table-divider: rgba(0,0,0,0.06);
+    --badge-pending-bg: rgba(245,158,11,0.12);
+    --badge-pending-text: #92400e;
+    --badge-submitted-bg: rgba(59,130,246,0.12);
+    --badge-submitted-text: #1e3a8a;
+    --badge-verified-bg: rgba(16,185,129,0.12);
+    --badge-verified-text: #064e3b;
+    --badge-rejected-bg: rgba(239,68,68,0.12);
+    --badge-rejected-text: #7f1d1d;
+  }
+
+  /* Dark mode */
+  .dark {
+    --bg-base:      #030712;
+    --bg-surface:   #0f172a;
+    --bg-raised:    #1e293b;
+    --bg-overlay:   rgba(255,255,255,0.05);
+    --border:       rgba(255,255,255,0.08);
+    --border-strong:rgba(255,255,255,0.14);
+    --text-primary: #f1f5f9;
+    --text-secondary:#94a3b8;
+    --text-muted:   #475569;
+    --sidebar-bg:   #0f172a;
+    --sidebar-border:rgba(255,255,255,0.05);
+    --nav-active-bg:rgba(59,130,246,0.15);
+    --nav-active-text:#93c5fd;
+    --nav-active-border:rgba(59,130,246,0.25);
+    --nav-text:     #94a3b8;
+    --nav-hover-bg: rgba(255,255,255,0.05);
+    --input-bg:     rgba(255,255,255,0.05);
+    --input-border: rgba(255,255,255,0.10);
+    --card-bg:      rgba(255,255,255,0.05);
+    --table-header-bg: rgba(255,255,255,0.03);
+    --table-row-hover: rgba(255,255,255,0.03);
+    --table-divider: rgba(255,255,255,0.05);
+    --badge-pending-bg: rgba(245,158,11,0.15);
+    --badge-pending-text: #fcd34d;
+    --badge-submitted-bg: rgba(59,130,246,0.15);
+    --badge-submitted-text: #93c5fd;
+    --badge-verified-bg: rgba(16,185,129,0.15);
+    --badge-verified-text: #6ee7b7;
+    --badge-rejected-bg: rgba(239,68,68,0.15);
+    --badge-rejected-text: #fca5a5;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  /* Surfaces */
+  .t-bg-base    { background-color: var(--bg-base); }
+  .t-bg-surface { background-color: var(--bg-surface); }
+  .t-bg-raised  { background-color: var(--bg-raised); }
+  .t-bg-overlay { background-color: var(--bg-overlay); }
+
+  /* Borders */
+  .t-border       { border-color: var(--border); }
+  .t-border-strong{ border-color: var(--border-strong); }
+
+  /* Text */
+  .t-text-primary  { color: var(--text-primary); }
+  .t-text-secondary{ color: var(--text-secondary); }
+  .t-text-muted    { color: var(--text-muted); }
+
+  /* Sidebar */
+  .t-sidebar-bg    { background-color: var(--sidebar-bg); border-color: var(--sidebar-border); }
+  .t-nav-text      { color: var(--nav-text); }
+  .t-nav-active    {
+    background-color: var(--nav-active-bg);
+    color: var(--nav-active-text);
+    border-color: var(--nav-active-border);
+  }
+  .t-nav-hover:hover {
+    background-color: var(--nav-hover-bg);
+    color: var(--text-primary);
+  }
+
+  /* Inputs */
+  .t-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+  }
+  .t-input::placeholder { color: var(--text-muted); }
+  .t-input:focus {
+    outline: none;
+    ring-color: rgba(59,130,246,0.4);
+  }
+
+  /* Cards */
+  .t-card {
+    background-color: var(--card-bg);
+    border-color: var(--border);
+  }
+
+  /* Table */
+  .t-table-header { background-color: var(--table-header-bg); }
+  .t-table-row:hover { background-color: var(--table-row-hover); }
+  .t-table-divider { border-color: var(--table-divider); }
+
+  /* Status badges */
+  .t-badge-pending   { background-color: var(--badge-pending-bg);   color: var(--badge-pending-text); }
+  .t-badge-submitted { background-color: var(--badge-submitted-bg); color: var(--badge-submitted-text); }
+  .t-badge-verified  { background-color: var(--badge-verified-bg);  color: var(--badge-verified-text); }
+  .t-badge-rejected  { background-color: var(--badge-rejected-bg);  color: var(--badge-rejected-text); }
+
+  /* Select element needs explicit bg for option dropdowns */
+  .t-select {
+    background-color: var(--bg-raised);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+  }
+}
