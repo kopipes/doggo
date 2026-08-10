@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import path from 'path'
 import fs from 'fs'
 import { getDb } from '../db/database'
-import { saveFile, getFileUrl, getLocalFilePath } from '../services/storage'
+import { saveFile, getFileUrl, getLocalFilePath, deleteFile } from '../services/storage'
 import { sendSubmissionConfirmation } from '../services/email'
 import { audit } from '../services/audit'
 
@@ -85,6 +85,34 @@ export async function fileRoutes(app: FastifyInstance) {
       }).catch((err) => app.log.error({ err }, 'Failed to send confirmation email'))
 
       return reply.send({ ok: true, data: { certs: certCount, dog_photo: !!dogPhotoKey } })
+    },
+  )
+
+  // DELETE /api/files/runner/:id/:field — admin removes a specific file field
+  // field: cert_file_key | cert_file_key_2 | cert_file_key_3 | dog_photo_key
+  app.delete<{ Params: { id: string; field: string } }>(
+    '/runner/:id/:field',
+    async (req, reply) => {
+      const { id, field } = req.params
+      const ALLOWED_FIELDS = ['cert_file_key', 'cert_file_key_2', 'cert_file_key_3', 'dog_photo_key']
+      if (!ALLOWED_FIELDS.includes(field)) {
+        return reply.code(400).send({ ok: false, error: 'Invalid field' })
+      }
+      const db = getDb()
+      const runner = db.prepare('SELECT * FROM runners WHERE id = ?').get(Number(id)) as any
+      if (!runner) return reply.code(404).send({ ok: false, error: 'Runner not found' })
+
+      const key = runner[field]
+      if (!key) return reply.code(404).send({ ok: false, error: 'No file on this field' })
+
+      // Delete from storage
+      await deleteFile(key).catch(() => {}) // best-effort; file may already be missing
+
+      // Clear the field in DB
+      db.prepare(`UPDATE runners SET ${field} = NULL, updated_at = datetime('now') WHERE id = ?`).run(Number(id))
+      audit(null, 'admin', 'delete_file', 'runners', id, `field=${field} key=${key}`)
+
+      return reply.send({ ok: true, data: null })
     },
   )
 

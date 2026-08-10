@@ -23,9 +23,9 @@ export default function AuditPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold t-text-primary">Audit Log</h1>
-        <p className="text-sm t-text-muted mt-0.5">{total} entries total</p>
+      <div className="mb-5">
+        <h1 className="text-lg font-bold t-text-primary">Audit Log</h1>
+        <p className="text-xs t-text-muted mt-0.5">{total} entries total</p>
       </div>
 
       {loading ? (
@@ -38,33 +38,39 @@ export default function AuditPage() {
         </div>
       ) : (
         <div className="rounded-xl border t-border overflow-hidden">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b t-border t-table-header">
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider">Time</th>
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider">Actor</th>
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider">Action</th>
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider hidden lg:table-cell">Entity</th>
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider hidden lg:table-cell">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider hidden xl:table-cell">Detail</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y t-table-divider t-bg-surface">
-              {entries.map((e) => (
-                <tr key={e.id} className="t-table-row transition-colors">
-                  <td className="px-4 py-2.5 text-xs t-text-muted whitespace-nowrap">{new Date(e.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-2.5 text-xs t-text-secondary">{e.actor_id ? `#${e.actor_id} (${e.actor_role})` : e.actor_role ?? '—'}</td>
-                  <td className="px-4 py-2.5 font-mono text-xs text-blue-600">{e.action}</td>
-                  <td className="px-4 py-2.5 text-xs t-text-muted hidden lg:table-cell">{e.entity}</td>
-                  <td className="px-4 py-2.5 font-mono text-xs t-text-muted hidden lg:table-cell">{e.entity_id}</td>
-                  <td className="px-4 py-2.5 text-xs t-text-muted max-w-xs truncate hidden xl:table-cell">{e.detail ?? '—'}</td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b t-border t-table-header">
+                  <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Time</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Actor</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Entity</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Detail</th>
                 </tr>
-              ))}
-              {entries.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-16 text-center t-text-muted">No entries</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y t-table-divider t-bg-surface">
+                {entries.map((e) => (
+                  <tr key={e.id} className="t-table-row transition-colors">
+                    <td className="px-4 py-2.5 text-xs t-text-muted whitespace-nowrap">
+                      {new Date(e.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-blue-600 whitespace-nowrap">{e.action}</td>
+                    <td className="px-4 py-2.5 text-xs t-text-secondary whitespace-nowrap hidden sm:table-cell">
+                      {e.actor_id ? `#${e.actor_id} (${e.actor_role})` : e.actor_role ?? '—'}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs t-text-muted whitespace-nowrap hidden md:table-cell">
+                      {e.entity} #{e.entity_id}
+                    </td>
+                    <td className="px-4 py-2.5 text-xs t-text-muted max-w-[200px] truncate hidden lg:table-cell">{e.detail ?? '—'}</td>
+                  </tr>
+                ))}
+                {entries.length === 0 && (
+                  <tr><td colSpan={5} className="px-4 py-12 text-center t-text-muted text-sm">No entries</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
