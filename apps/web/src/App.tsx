@@ -11,6 +11,7 @@ import ImportPage from './pages/admin/ImportPage'
 import StaffPage from './pages/admin/StaffPage'
 import SettingsPage from './pages/admin/SettingsPage'
 import AuditPage from './pages/admin/AuditPage'
+import StoragePage from './pages/admin/StoragePage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
                 <Route path="/admin/staff" element={<StaffPage />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/audit" element={<AuditPage />} />
+                <Route path="/admin/storage" element={<StoragePage />} />
               </Route>
             </Route>
 
