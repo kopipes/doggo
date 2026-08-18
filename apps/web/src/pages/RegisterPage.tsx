@@ -126,6 +126,7 @@ export default function RegisterPage() {
   const [lookupError, setLookupError] = useState('')
   const [lookupLoading, setLookupLoading] = useState(false)
   const [completionVisible, setCompletionVisible] = useState(false)
+  const [doneModalVisible, setDoneModalVisible] = useState(false)
 
   const [certSlots, setCertSlots] = useState<SlotState[]>([
     { state: 'idle' }, { state: 'idle' }, { state: 'idle' },
@@ -329,7 +330,7 @@ export default function RegisterPage() {
                 {runner.cert_count > 0 && (
                   <div className="pt-2 border-t t-border">
                     <button
-                      onClick={() => { setRunner(null); setCompletionVisible(false); setTicketId('') }}
+                      onClick={() => setDoneModalVisible(true)}
                       className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -374,6 +375,48 @@ export default function RegisterPage() {
           </>
         )}
       </div>
+
+      {/* Submission confirmation modal */}
+      {doneModalVisible && runner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="t-card border t-border rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+            {/* Checkmark icon */}
+            <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-5">
+              <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+
+            <h2 className="t-text-primary text-xl font-bold mb-2">Submission Received!</h2>
+            <p className="t-text-muted text-sm mb-1">
+              Thank you, <strong className="t-text-primary">{runner.first_name}</strong>. Your documents have been successfully submitted.
+            </p>
+            <p className="t-text-muted text-sm mb-6">
+              A confirmation email has been sent to <strong className="t-text-primary">{runner.email}</strong>. Our team will review your submission shortly.
+            </p>
+
+            {/* Ticket ID pill */}
+            <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-2 mb-6">
+              <span className="text-xs t-text-muted">Ticket ID</span>
+              <span className="font-mono font-bold text-blue-500 text-sm tracking-widest">{runner.ticket_id}</span>
+            </div>
+
+            <button
+              onClick={() => {
+                setDoneModalVisible(false)
+                setRunner(null)
+                setCompletionVisible(false)
+                setTicketId('')
+                setCertSlots([{ state: 'idle' }, { state: 'idle' }, { state: 'idle' }])
+                setDogSlot({ state: 'idle' })
+              }}
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
