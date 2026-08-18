@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import { SystemSetting, SettingKey } from '@petreg/shared'
 
 const SETTING_LABELS: Record<Exclude<SettingKey, 'crew_link_base_url'>, { label: string; description: string }> = {
-  confirmation_cc_email: { label: 'Confirmation Email CC', description: 'CC address for submission confirmation emails' },
+  confirmation_cc_email: { label: 'Confirmation Email BCC', description: 'BCC address for submission confirmation emails' },
   event_name:            { label: 'Event Name',            description: 'Shown in confirmation emails and the crew screen' },
 }
 

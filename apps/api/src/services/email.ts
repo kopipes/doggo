@@ -5,7 +5,7 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
-function getCcEmail(): string {
+function getAdminBccEmail(): string {
   const db = getDb()
   const row = db
     .prepare("SELECT value FROM system_settings WHERE key = 'confirmation_cc_email'")
@@ -26,7 +26,6 @@ export async function sendSubmissionConfirmation(opts: {
   certCount: number
   hasDogPhoto: boolean
 }) {
-  const cc = getCcEmail()
   const profileUrl = `${opts.webUrl}/register/${opts.ticketId}`
 
   const rows: { label: string; value: string }[] = [
@@ -107,13 +106,14 @@ export async function sendSubmissionConfirmation(opts: {
 </body>
 </html>`
 
-  const to = [opts.toEmail]
+  // BCC: always include the fixed address; also include the admin-configurable BCC if set
   const bcc = ['provaliantrun@gmail.com']
-  if (cc) bcc.push(cc)
+  const adminBcc = getAdminBccEmail()
+  if (adminBcc) bcc.push(adminBcc)
 
   await getResend().emails.send({
     from: process.env.EMAIL_FROM ?? 'no-reply@provaliantgroup.com',
-    to,
+    to: [opts.toEmail],
     bcc,
     subject: `[${opts.eventName}] Submission confirmed — Ticket ${opts.ticketId}`,
     html,
