@@ -2,14 +2,17 @@ import { FastifyInstance } from 'fastify'
 import path from 'path'
 import fs from 'fs'
 import { getDb } from '../db/database'
-import { saveFile, getFileUrl, getLocalFilePath, deleteFile } from '../services/storage'
+import { saveFile, getFileUrl, getLocalFilePath, deleteFile, listFiles } from '../services/storage'
 import { sendSubmissionConfirmation } from '../services/email'
 import { audit } from '../services/audit'
+import { requireAdmin } from '../middleware/auth'
+import { JwtPayload } from '@petreg/shared'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 const MAX_CERTS = 3
 const CERT_FIELDS = ['cert', 'cert_2', 'cert_3'] as const
 const CERT_KEYS = ['cert_file_key', 'cert_file_key_2', 'cert_file_key_3'] as const
+const ALL_FILE_FIELDS = ['cert_file_key', 'cert_file_key_2', 'cert_file_key_3', 'dog_photo_key'] as const
 
 export async function fileRoutes(app: FastifyInstance) {
   // POST /api/files/upload/:ticketId — user uploads cert (up to 3) + dog photo
@@ -57,17 +60,30 @@ export async function fileRoutes(app: FastifyInstance) {
       const updates: string[] = []
       const vals: any[] = []
 
+      // Delete old file from storage if this slot is being replaced
+      const oldKeysToDelete: string[] = []
       certKeys.forEach((key, i) => {
         if (key) {
+          const oldKey = runner[CERT_KEYS[i]]
+          if (oldKey) oldKeysToDelete.push(oldKey)
           updates.push(`${CERT_KEYS[i]} = ?`)
           vals.push(key)
         }
       })
-      if (dogPhotoKey) { updates.push('dog_photo_key = ?'); vals.push(dogPhotoKey) }
+      if (dogPhotoKey) {
+        if (runner.dog_photo_key) oldKeysToDelete.push(runner.dog_photo_key)
+        updates.push('dog_photo_key = ?')
+        vals.push(dogPhotoKey)
+      }
       if (!updates.length) return reply.code(400).send({ ok: false, error: 'No files received' })
 
       updates.push("submission_status = 'submitted'", "updated_at = datetime('now')")
       db.prepare(`UPDATE runners SET ${updates.join(', ')} WHERE id = ?`).run(...vals, runner.id)
+
+      // Best-effort: delete old replaced files from storage after DB is updated
+      for (const oldKey of oldKeysToDelete) {
+        deleteFile(oldKey).catch(() => {})
+      }
 
       const certCount = certKeys.filter(Boolean).length
       audit(null, 'user', 'upload', 'runners', runner.id,
@@ -103,10 +119,11 @@ export async function fileRoutes(app: FastifyInstance) {
   // field: cert_file_key | cert_file_key_2 | cert_file_key_3 | dog_photo_key
   app.delete<{ Params: { id: string; field: string } }>(
     '/runner/:id/:field',
+    { preHandler: requireAdmin },
     async (req, reply) => {
       const { id, field } = req.params
-      const ALLOWED_FIELDS = ['cert_file_key', 'cert_file_key_2', 'cert_file_key_3', 'dog_photo_key']
-      if (!ALLOWED_FIELDS.includes(field)) {
+      const ALLOWED_FIELDS = [...ALL_FILE_FIELDS]
+      if (!ALLOWED_FIELDS.includes(field as any)) {
         return reply.code(400).send({ ok: false, error: 'Invalid field' })
       }
       const db = getDb()
@@ -121,7 +138,9 @@ export async function fileRoutes(app: FastifyInstance) {
 
       // Clear the field in DB
       db.prepare(`UPDATE runners SET ${field} = NULL, updated_at = datetime('now') WHERE id = ?`).run(Number(id))
-      audit(null, 'admin', 'delete_file', 'runners', id, `field=${field} key=${key}`)
+
+      const payload = req.user as JwtPayload
+      audit(payload.sub, payload.role, 'delete_file', 'runners', id, `field=${field} key=${key}`)
 
       // If no bib and all files are gone, reset status back to pending
       const updated = db.prepare(
@@ -133,6 +152,73 @@ export async function fileRoutes(app: FastifyInstance) {
       }
 
       return reply.send({ ok: true, data: null })
+    },
+  )
+
+  // GET /api/files/orphans — dry-run: list orphaned file keys (admin only)
+  app.get(
+    '/orphans',
+    { preHandler: requireAdmin },
+    async (_req, reply) => {
+      const db = getDb()
+      // Collect all keys currently referenced in the DB
+      const rows = db.prepare(
+        `SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners`
+      ).all() as any[]
+      const referencedKeys = new Set<string>()
+      for (const row of rows) {
+        for (const field of ALL_FILE_FIELDS) {
+          if (row[field]) referencedKeys.add(row[field])
+        }
+      }
+
+      // List all files in storage
+      const allKeys = await listFiles()
+
+      // Orphans = files in storage not referenced in DB
+      const orphans = allKeys.filter(k => !referencedKeys.has(k))
+
+      return reply.send({ ok: true, data: { count: orphans.length, keys: orphans } })
+    },
+  )
+
+  // DELETE /api/files/orphans — purge orphaned files (admin only, audited)
+  app.delete(
+    '/orphans',
+    { preHandler: requireAdmin },
+    async (req, reply) => {
+      const db = getDb()
+      // Collect all keys currently referenced in the DB
+      const rows = db.prepare(
+        `SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners`
+      ).all() as any[]
+      const referencedKeys = new Set<string>()
+      for (const row of rows) {
+        for (const field of ALL_FILE_FIELDS) {
+          if (row[field]) referencedKeys.add(row[field])
+        }
+      }
+
+      // List all files in storage
+      const allKeys = await listFiles()
+      const orphans = allKeys.filter(k => !referencedKeys.has(k))
+
+      // Delete each orphan from storage
+      let deleted = 0
+      const failed: string[] = []
+      for (const key of orphans) {
+        try {
+          await deleteFile(key)
+          deleted++
+        } catch {
+          failed.push(key)
+        }
+      }
+
+      const payload = req.user as JwtPayload
+      audit(payload.sub, payload.role, 'purge_orphans', 'storage', 0, `deleted=${deleted} failed=${failed.length}`)
+
+      return reply.send({ ok: true, data: { deleted, failed } })
     },
   )
 

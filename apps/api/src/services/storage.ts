@@ -6,6 +6,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
@@ -74,6 +75,35 @@ export async function deleteFile(key: string): Promise<void> {
   } else {
     const filePath = getLocalFilePath(key)
     if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath)
+  }
+}
+
+/**
+ * List all file keys currently in storage.
+ * Local: reads filenames from uploadDir.
+ * S3: paginates through all objects in the bucket.
+ */
+export async function listFiles(): Promise<string[]> {
+  if (driver === 's3') {
+    const keys: string[] = []
+    let continuationToken: string | undefined
+    do {
+      const res = await getS3().send(new ListObjectsV2Command({
+        Bucket: s3Bucket,
+        ContinuationToken: continuationToken,
+      }))
+      for (const obj of res.Contents ?? []) {
+        if (obj.Key) keys.push(obj.Key)
+      }
+      continuationToken = res.NextContinuationToken
+    } while (continuationToken)
+    return keys
+  } else {
+    if (!fs.existsSync(uploadDir)) return []
+    return fs.readdirSync(uploadDir).filter(f => {
+      const full = path.join(uploadDir, f)
+      return fs.statSync(full).isFile()
+    })
   }
 }
 
