@@ -384,26 +384,30 @@ export default function RegisterPage() {
       {doneModalVisible && runner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
           <div className="t-card border t-border rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
-            {/* Checkmark icon */}
-            <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-5">
-              <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            {/* Checkmark icon — grey if no changes, green otherwise */}
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${completionVisible ? 'bg-emerald-500/15' : 'bg-gray-500/15'}`}>
+              <svg className={`w-8 h-8 ${completionVisible ? 'text-emerald-500' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
               </svg>
             </div>
 
             <h2 className="t-text-primary text-xl font-bold mb-2">
-              {isFirstSubmission ? 'Submission Received!' : 'Files Updated!'}
+              {!completionVisible ? 'No Changes Made' : isFirstSubmission ? 'Submission Received!' : 'Files Updated!'}
             </h2>
             <p className="t-text-muted text-sm mb-1">
-              Thank you, <strong className="t-text-primary">{runner.first_name}</strong>.{' '}
-              {isFirstSubmission
-                ? 'Your documents have been successfully submitted.'
-                : 'Your documents have been successfully updated.'}
+              {!completionVisible
+                ? <>Hi <strong className="t-text-primary">{runner.first_name}</strong>, no files were changed this session.</>
+                : <>Thank you, <strong className="t-text-primary">{runner.first_name}</strong>.{' '}
+                    {isFirstSubmission ? 'Your documents have been successfully submitted.' : 'Your documents have been successfully updated.'}</>
+              }
             </p>
             <p className="t-text-muted text-sm mb-6">
-              {isFirstSubmission
-                ? <>A confirmation email has been sent to <strong className="t-text-primary">{runner.email}</strong>. Our team will review your submission shortly.</>
-                : 'Our team will review your updated documents shortly.'}
+              {!completionVisible
+                ? 'You can return anytime to upload or replace your files.'
+                : isFirstSubmission
+                  ? <>A confirmation email has been sent to <strong className="t-text-primary">{runner.email}</strong>. Our team will review your submission shortly.</>
+                  : 'Our team will review your updated documents shortly.'
+              }
             </p>
 
             {/* Ticket ID pill */}
