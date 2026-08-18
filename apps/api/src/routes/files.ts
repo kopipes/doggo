@@ -82,6 +82,12 @@ export async function fileRoutes(app: FastifyInstance) {
         ticketId: runner.ticket_id,
         eventName,
         webUrl,
+        phone: runner.phone ?? undefined,
+        ticketName: runner.ticket_name ?? undefined,
+        shirtSize: runner.shirt_size ?? undefined,
+        collarSize: runner.collar_size ?? undefined,
+        certCount,
+        hasDogPhoto: !!dogPhotoKey,
       }).catch((err) => app.log.error({ err }, 'Failed to send confirmation email'))
 
       return reply.send({ ok: true, data: { certs: certCount, dog_photo: !!dogPhotoKey } })
