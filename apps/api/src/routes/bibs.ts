@@ -67,6 +67,15 @@ export async function bibRoutes(app: FastifyInstance) {
         runner.id,
       )
 
+      // If all files are also gone, reset status back to pending
+      const updated = db.prepare(
+        'SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners WHERE id = ?'
+      ).get(runner.id) as any
+      const hasFiles = updated.cert_file_key || updated.cert_file_key_2 || updated.cert_file_key_3 || updated.dog_photo_key
+      if (!hasFiles) {
+        db.prepare(`UPDATE runners SET submission_status = 'pending', updated_at = datetime('now') WHERE id = ?`).run(runner.id)
+      }
+
       const payload = req.user as JwtPayload
       audit(payload.sub, payload.role, 'unassign_bib', 'runners', runner.id, `bib=${req.params.bib_number}`)
 

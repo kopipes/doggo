@@ -112,6 +112,15 @@ export async function fileRoutes(app: FastifyInstance) {
       db.prepare(`UPDATE runners SET ${field} = NULL, updated_at = datetime('now') WHERE id = ?`).run(Number(id))
       audit(null, 'admin', 'delete_file', 'runners', id, `field=${field} key=${key}`)
 
+      // If no bib and all files are gone, reset status back to pending
+      const updated = db.prepare(
+        'SELECT bib_number, cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners WHERE id = ?'
+      ).get(Number(id)) as any
+      const hasAny = updated.bib_number || updated.cert_file_key || updated.cert_file_key_2 || updated.cert_file_key_3 || updated.dog_photo_key
+      if (!hasAny) {
+        db.prepare(`UPDATE runners SET submission_status = 'pending', updated_at = datetime('now') WHERE id = ?`).run(Number(id))
+      }
+
       return reply.send({ ok: true, data: null })
     },
   )
