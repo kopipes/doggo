@@ -127,6 +127,7 @@ export default function RegisterPage() {
   const [lookupLoading, setLookupLoading] = useState(false)
   const [completionVisible, setCompletionVisible] = useState(false)
   const [doneModalVisible, setDoneModalVisible] = useState(false)
+  const [isFirstSubmission, setIsFirstSubmission] = useState(false)
 
   const [certSlots, setCertSlots] = useState<SlotState[]>([
     { state: 'idle' }, { state: 'idle' }, { state: 'idle' },
@@ -159,6 +160,9 @@ export default function RegisterPage() {
       const res = await api.upload(`/files/upload/${runner!.ticket_id}`, form)
       if (!res.ok) { setSlot({ state: 'error', error: (res as any).error ?? 'Upload failed' }); return }
       setSlot({ state: 'done', filename: file.name })
+      if ((res as any).data?.first_submission !== undefined) {
+        setIsFirstSubmission((res as any).data.first_submission)
+      }
       const updated = await api.get<PublicRunner>(`/runners/by-ticket/${runner!.ticket_id}`)
       if (updated.ok) { setRunner(updated.data); setCompletionVisible(true) }
     } catch {
@@ -387,12 +391,19 @@ export default function RegisterPage() {
               </svg>
             </div>
 
-            <h2 className="t-text-primary text-xl font-bold mb-2">Submission Received!</h2>
+            <h2 className="t-text-primary text-xl font-bold mb-2">
+              {isFirstSubmission ? 'Submission Received!' : 'Files Updated!'}
+            </h2>
             <p className="t-text-muted text-sm mb-1">
-              Thank you, <strong className="t-text-primary">{runner.first_name}</strong>. Your documents have been successfully submitted.
+              Thank you, <strong className="t-text-primary">{runner.first_name}</strong>.{' '}
+              {isFirstSubmission
+                ? 'Your documents have been successfully submitted.'
+                : 'Your documents have been successfully updated.'}
             </p>
             <p className="t-text-muted text-sm mb-6">
-              A confirmation email has been sent to <strong className="t-text-primary">{runner.email}</strong>. Our team will review your submission shortly.
+              {isFirstSubmission
+                ? <>A confirmation email has been sent to <strong className="t-text-primary">{runner.email}</strong>. Our team will review your submission shortly.</>
+                : 'Our team will review your updated documents shortly.'}
             </p>
 
             {/* Ticket ID pill */}

@@ -73,24 +73,29 @@ export async function fileRoutes(app: FastifyInstance) {
       audit(null, 'user', 'upload', 'runners', runner.id,
         `certs=${certCount} dogPhoto=${!!dogPhotoKey}`)
 
-      // Fire confirmation email (non-blocking)
-      const eventName = (db.prepare("SELECT value FROM system_settings WHERE key='event_name'").get() as any)?.value ?? 'Dog Run Race'
-      const webUrl = process.env.WEB_URL ?? 'http://localhost:5173'
-      sendSubmissionConfirmation({
-        toEmail: runner.email,
-        toName: `${runner.first_name} ${runner.last_name}`.trim(),
-        ticketId: runner.ticket_id,
-        eventName,
-        webUrl,
-        phone: runner.phone ?? undefined,
-        ticketName: runner.ticket_name ?? undefined,
-        shirtSize: runner.shirt_size ?? undefined,
-        collarSize: runner.collar_size ?? undefined,
-        certCount,
-        hasDogPhoto: !!dogPhotoKey,
-      }).catch((err) => app.log.error({ err }, 'Failed to send confirmation email'))
+      // Determine if this is a first-time submission (no files existed before this upload)
+      const isFirstSubmission = !runner.cert_file_key && !runner.cert_file_key_2 && !runner.cert_file_key_3 && !runner.dog_photo_key
 
-      return reply.send({ ok: true, data: { certs: certCount, dog_photo: !!dogPhotoKey } })
+      // Only send confirmation email on first submission
+      if (isFirstSubmission) {
+        const eventName = (db.prepare("SELECT value FROM system_settings WHERE key='event_name'").get() as any)?.value ?? 'Dog Run Race'
+        const webUrl = process.env.WEB_URL ?? 'http://localhost:5173'
+        sendSubmissionConfirmation({
+          toEmail: runner.email,
+          toName: `${runner.first_name} ${runner.last_name}`.trim(),
+          ticketId: runner.ticket_id,
+          eventName,
+          webUrl,
+          phone: runner.phone ?? undefined,
+          ticketName: runner.ticket_name ?? undefined,
+          shirtSize: runner.shirt_size ?? undefined,
+          collarSize: runner.collar_size ?? undefined,
+          certCount,
+          hasDogPhoto: !!dogPhotoKey,
+        }).catch((err) => app.log.error({ err }, 'Failed to send confirmation email'))
+      }
+
+      return reply.send({ ok: true, data: { certs: certCount, dog_photo: !!dogPhotoKey, first_submission: isFirstSubmission } })
     },
   )
 
