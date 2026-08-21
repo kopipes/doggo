@@ -4,7 +4,57 @@ import { requireAdmin, requireOfficial } from '../middleware/auth'
 import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
 
+const BIB_MIN = 1000
+const BIB_MAX = 1750
+
 export async function bibRoutes(app: FastifyInstance) {
+  // GET /api/bibs/available — returns available bib numbers in range 1000-1750
+  app.get(
+    '/available',
+    { preHandler: requireOfficial },
+    async (_req, reply) => {
+      const db = getDb()
+      const taken = new Set(
+        (db.prepare('SELECT bib_number FROM runners WHERE bib_number IS NOT NULL').all() as any[])
+          .map((r) => r.bib_number)
+      )
+
+      const available: string[] = []
+      for (let n = BIB_MIN; n <= BIB_MAX; n++) {
+        const bib = String(n)
+        if (!taken.has(bib)) available.push(bib)
+      }
+
+      // Pick 5 random suggestions from available
+      const shuffled = [...available].sort(() => Math.random() - 0.5)
+      const suggestions = shuffled.slice(0, 5).sort()
+
+      return reply.send({
+        ok: true,
+        data: {
+          total_available: available.length,
+          total_taken: taken.size,
+          range: { min: BIB_MIN, max: BIB_MAX },
+          suggestions,
+          next: available[0] ?? null,
+        },
+      })
+    },
+  )
+
+  // GET /api/bibs/check/:bib_number — check if a specific bib is available
+  app.get<{ Params: { bib_number: string } }>(
+    '/check/:bib_number',
+    { preHandler: requireOfficial },
+    async (req, reply) => {
+      const db = getDb()
+      const existing = db
+        .prepare('SELECT ticket_id FROM runners WHERE bib_number = ?')
+        .get(req.params.bib_number) as any
+      return reply.send({ ok: true, data: { available: !existing } })
+    },
+  )
+
   // POST /api/bibs/assign — official assigns bib to runner
   app.post<{ Body: { ticket_id: string; bib_number: string } }>(
     '/assign',
