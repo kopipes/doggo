@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { api } from '../../lib/api'
@@ -91,6 +91,10 @@ export default function RunnerDetailPage() {
   const [bibInput, setBibInput] = useState('')
   const [bibMsg, setBibMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [bibSaving, setBibSaving] = useState(false)
+  const [bibMode, setBibMode] = useState<'auto' | 'suggest' | 'manual'>('auto')
+  const [bibAvailable, setBibAvailable] = useState<{ suggestions: string[]; next: string | null; total_available: number } | null>(null)
+  const [bibCheck, setBibCheck] = useState<'idle' | 'checking' | 'ok' | 'taken'>('idle')
+  const bibCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   async function load() {
     const res = await api.get<Runner>(`/runners/${id}`, token)
@@ -117,7 +121,7 @@ export default function RunnerDetailPage() {
     setMediaItems(items)
   }
 
-  useEffect(() => { load() }, [id])
+  useEffect(() => { load(); fetchBibAvailable() }, [id])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -131,14 +135,18 @@ export default function RunnerDetailPage() {
     load()
   }
 
-  async function handleBibAssign(e: React.FormEvent) {
-    e.preventDefault()
+  async function fetchBibAvailable() {
+    const res = await api.get<{ suggestions: string[]; next: string | null; total_available: number }>('/bibs/available', token)
+    if (res.ok) setBibAvailable(res.data)
+  }
+
+  async function handleBibAssign(bibToAssign: string) {
     if (!runner) return
     setBibMsg(null)
     setBibSaving(true)
-    const res = await api.post('/bibs/assign', { ticket_id: runner.ticket_id, bib_number: bibInput }, token)
+    const res = await api.post('/bibs/assign', { ticket_id: runner.ticket_id, bib_number: bibToAssign }, token)
     if (!res.ok) { setBibMsg({ type: 'err', text: (res as any).error }) }
-    else { setBibMsg({ type: 'ok', text: `Bib ${bibInput} assigned` }); load() }
+    else { setBibMsg({ type: 'ok', text: `Bib ${bibToAssign} assigned` }); setBibInput(bibToAssign); load(); fetchBibAvailable() }
     setBibSaving(false)
   }
 
@@ -229,16 +237,15 @@ export default function RunnerDetailPage() {
               {runner.bib_number && (
                 <span className="font-mono text-xl font-bold text-blue-500">#{runner.bib_number}</span>
               )}
-              {/* Admin: clear bib */}
               {isAdmin && runner.bib_number && (
                 <button onClick={handleBibClear}
-                  className="text-xs text-red-500 hover:text-red-400 border border-red-500/20 px-2 py-1 rounded-lg transition-colors"
-                  title="Remove bib assignment">
+                  className="text-xs text-red-500 hover:text-red-400 border border-red-500/20 px-2 py-1 rounded-lg transition-colors">
                   Clear
                 </button>
               )}
             </div>
           </div>
+
           {bibMsg && (
             <div className={`flex items-center gap-2 rounded-xl px-3 py-2 mb-3 text-sm ${
               bibMsg.type === 'ok' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600' : 'bg-red-500/10 border border-red-500/20 text-red-600'
@@ -250,20 +257,109 @@ export default function RunnerDetailPage() {
               {bibMsg.text}
             </div>
           )}
-          <form onSubmit={handleBibAssign} className="flex gap-2">
-            <input
-              type="text" inputMode="numeric" pattern="\d{4}" maxLength={4}
-              value={bibInput}
-              onChange={e => setBibInput(e.target.value.replace(/\D/g, ''))}
-              placeholder="0001"
-              className="t-input flex-1 min-w-0 border rounded-xl px-3 py-2.5 text-xl font-mono text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            />
-            <button type="submit" disabled={bibSaving || bibInput.length !== 4}
-              className="shrink-0 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50">
-              {bibSaving ? '…' : runner.bib_number ? 'Update' : 'Assign'}
-            </button>
-          </form>
-          <p className="text-xs t-text-muted mt-2">4 digits · unique per runner
+
+          {/* Mode tabs */}
+          <div className="flex gap-1 p-1 t-bg-raised rounded-xl mb-3">
+            {(['auto', 'suggest', 'manual'] as const).map((m) => (
+              <button key={m} onClick={() => { setBibMode(m); setBibInput(''); setBibCheck('idle') }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  bibMode === m ? 'bg-blue-600 text-white' : 't-text-muted hover:t-text-primary'
+                }`}>
+                {m === 'auto' ? 'Auto' : m === 'suggest' ? 'Suggest' : 'Manual'}
+              </button>
+            ))}
+          </div>
+
+          {/* AUTO */}
+          {bibMode === 'auto' && (
+            <div className="space-y-2">
+              {bibAvailable?.next ? (
+                <>
+                  <div className="flex items-center justify-center py-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                    <span className="text-3xl font-mono font-bold text-blue-500 tracking-widest">{bibAvailable.next}</span>
+                  </div>
+                  <button onClick={() => handleBibAssign(bibAvailable.next!)} disabled={bibSaving}
+                    className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold py-2 rounded-xl text-sm transition-colors">
+                    {bibSaving ? 'Assigning…' : `Assign ${bibAvailable.next}`}
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-center t-text-muted py-2">No bibs available in range 1000–1750</p>
+              )}
+            </div>
+          )}
+
+          {/* SUGGEST */}
+          {bibMode === 'suggest' && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-5 gap-1.5">
+                {(bibAvailable?.suggestions ?? []).map((s) => (
+                  <button key={s} onClick={() => setBibInput(s)}
+                    className={`py-2.5 rounded-xl font-mono font-bold text-sm transition-all border ${
+                      bibInput === s ? 'bg-blue-600 text-white border-blue-600' : 't-card t-border t-text-primary hover:border-blue-500/50'
+                    }`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => fetchBibAvailable()} className="text-xs text-blue-500 hover:text-blue-400 w-full text-center">
+                Refresh suggestions
+              </button>
+              {bibInput && (
+                <button onClick={() => handleBibAssign(bibInput)} disabled={bibSaving}
+                  className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold py-2 rounded-xl text-sm transition-colors">
+                  {bibSaving ? 'Assigning…' : `Assign ${bibInput}`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* MANUAL */}
+          {bibMode === 'manual' && (
+            <div className="space-y-2">
+              <div className="relative">
+                <input type="text" inputMode="numeric" maxLength={4}
+                  value={bibInput}
+                  onChange={e => {
+                    const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+                    setBibInput(v); setBibCheck('idle')
+                    if (bibCheckTimer.current) clearTimeout(bibCheckTimer.current)
+                    if (v.length === 4) {
+                      setBibCheck('checking')
+                      bibCheckTimer.current = setTimeout(async () => {
+                        const r = await api.get<{ available: boolean }>(`/bibs/check/${v}`, token)
+                        setBibCheck((r as any).ok ? ((r as any).data.available ? 'ok' : 'taken') : 'idle')
+                      }, 400)
+                    }
+                  }}
+                  placeholder="1000"
+                  className={`t-input w-full border rounded-xl px-3 py-2.5 text-xl font-mono text-center tracking-widest focus:outline-none focus:ring-2 transition-colors ${
+                    bibCheck === 'ok' ? 'border-emerald-500 focus:ring-emerald-500/40' :
+                    bibCheck === 'taken' ? 'border-red-500 focus:ring-red-500/40' : 'focus:ring-blue-500/40'
+                  }`}
+                />
+                {bibInput.length === 4 && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {bibCheck === 'checking' && <svg className="w-4 h-4 animate-spin t-text-muted" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>}
+                    {bibCheck === 'ok' && <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+                    {bibCheck === 'taken' && <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>}
+                  </div>
+                )}
+              </div>
+              {bibCheck === 'taken' && <p className="text-xs text-red-500">Already assigned to another runner.</p>}
+              {bibCheck === 'ok' && <p className="text-xs text-emerald-500">Available.</p>}
+              {bibInput.length === 4 && (Number(bibInput) < 1000 || Number(bibInput) > 1750) && (
+                <p className="text-xs text-amber-500">Outside range 1000–1750.</p>
+              )}
+              <button onClick={() => handleBibAssign(bibInput)}
+                disabled={bibSaving || bibInput.length !== 4 || bibCheck === 'taken'}
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold py-2 rounded-xl text-sm transition-colors">
+                {bibSaving ? 'Assigning…' : runner.bib_number ? 'Update Bib' : 'Assign Bib'}
+              </button>
+            </div>
+          )}
+
+          <p className="text-xs t-text-muted mt-2">Range 1000–1750 · unique per runner
             {runner.bib_number && !isAdmin && ' · only admin can change'}
           </p>
         </div>
