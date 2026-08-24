@@ -12,6 +12,7 @@ import StaffPage from './pages/admin/StaffPage'
 import SettingsPage from './pages/admin/SettingsPage'
 import AuditPage from './pages/admin/AuditPage'
 import StoragePage from './pages/admin/StoragePage'
+import DashboardPage from './pages/admin/DashboardPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -28,7 +29,8 @@ export default function App() {
             {/* Staff (admin + official) */}
             <Route element={<ProtectedRoute />}>
               <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<Navigate to="/admin/runners" replace />} />
+                <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="/admin/dashboard" element={<DashboardPage />} />
                 <Route path="/admin/runners" element={<RunnersPage />} />
                 <Route path="/admin/runners/:id" element={<RunnerDetailPage />} />
                 <Route path="/admin/import" element={<ImportPage />} />

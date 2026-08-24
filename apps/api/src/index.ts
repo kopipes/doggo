@@ -15,6 +15,7 @@ import { settingsRoutes } from './routes/settings'
 import { crewRoutes } from './routes/crew'
 import { staffRoutes } from './routes/staff'
 import { auditRoutes } from './routes/audit'
+import { statsRoutes } from './routes/stats'
 
 const PORT = Number(process.env.PORT ?? 3001)
 
@@ -53,6 +54,7 @@ async function main() {
   await app.register(crewRoutes, { prefix: '/api/crew' })
   await app.register(staffRoutes, { prefix: '/api/staff' })
   await app.register(auditRoutes, { prefix: '/api/audit' })
+  await app.register(statsRoutes, { prefix: '/api/stats' })
 
   app.get('/api/health', async () => ({ ok: true, ts: new Date().toISOString() }))
 
