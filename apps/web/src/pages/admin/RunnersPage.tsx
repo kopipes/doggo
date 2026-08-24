@@ -109,6 +109,8 @@ export default function RunnersPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Email</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Bib</th>
+                <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Certificate uploaded">Cert</th>
+                <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Dog photo uploaded">Photo</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Status</th>
               </tr>
             </thead>
@@ -122,6 +124,18 @@ export default function RunnersPage() {
                   </td>
                   <td className="px-4 py-3 t-text-secondary hidden sm:table-cell max-w-[180px] truncate">{r.email}</td>
                   <td className="px-4 py-3 font-mono t-text-secondary whitespace-nowrap">{r.bib_number ?? '—'}</td>
+                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                    {r.has_cert
+                      ? <svg className="w-4 h-4 text-emerald-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      : <svg className="w-4 h-4 text-gray-300 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    }
+                  </td>
+                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                    {r.has_dog_photo
+                      ? <svg className="w-4 h-4 text-emerald-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      : <svg className="w-4 h-4 text-gray-300 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    }
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[r.submission_status] ?? ''}`}>
                       {r.submission_status}

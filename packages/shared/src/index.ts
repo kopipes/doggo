@@ -39,7 +39,10 @@ export type RunnerSummary = Pick<
   | 'ticket_name'
   | 'shirt_size'
   | 'collar_size'
->
+> & {
+  has_cert: number       // 1 if at least one cert uploaded, 0 otherwise
+  has_dog_photo: number  // 1 if dog photo uploaded, 0 otherwise
+}
 
 // ─── Staff accounts ──────────────────────────────────────────────────────────
 

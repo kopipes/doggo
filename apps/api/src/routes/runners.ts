@@ -29,7 +29,9 @@ export async function runnerRoutes(app: FastifyInstance) {
 
     const runners = db.prepare(
       `SELECT id, ticket_id, first_name, last_name, email, bib_number, submission_status,
-              ticket_name, shirt_size, collar_size
+              ticket_name, shirt_size, collar_size,
+              CASE WHEN cert_file_key IS NOT NULL OR cert_file_key_2 IS NOT NULL OR cert_file_key_3 IS NOT NULL THEN 1 ELSE 0 END as has_cert,
+              CASE WHEN dog_photo_key IS NOT NULL THEN 1 ELSE 0 END as has_dog_photo
        FROM runners ${where}
        ORDER BY last_name, first_name LIMIT ? OFFSET ?`,
     ).all(...params, limit, offset)
