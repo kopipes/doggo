@@ -13,6 +13,7 @@ import SettingsPage from './pages/admin/SettingsPage'
 import AuditPage from './pages/admin/AuditPage'
 import StoragePage from './pages/admin/StoragePage'
 import DashboardPage from './pages/admin/DashboardPage'
+import CheckInPage from './pages/admin/CheckInPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
                 <Route path="/admin/runners" element={<RunnersPage />} />
                 <Route path="/admin/runners/:id" element={<RunnerDetailPage />} />
                 <Route path="/admin/import" element={<ImportPage />} />
+                <Route path="/admin/checkin" element={<CheckInPage />} />
                 <Route path="/admin/staff" element={<StaffPage />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/audit" element={<AuditPage />} />

@@ -24,16 +24,18 @@ export async function statsRoutes(app: FastifyInstance) {
       }
 
       const bibs = (db.prepare(`SELECT COUNT(*) as c FROM runners WHERE bib_number IS NOT NULL`).get() as any).c
+      const checkedIn = (db.prepare(`SELECT COUNT(*) as c FROM runners WHERE checked_in = 1`).get() as any).c
 
       return reply.send({
         ok: true,
         data: {
           total,
-          pending:   byStatus['pending']   ?? 0,
-          submitted: byStatus['submitted'] ?? 0,
-          verified:  byStatus['verified']  ?? 0,
-          rejected:  byStatus['rejected']  ?? 0,
+          pending:      byStatus['pending']   ?? 0,
+          submitted:    byStatus['submitted'] ?? 0,
+          verified:     byStatus['verified']  ?? 0,
+          rejected:     byStatus['rejected']  ?? 0,
           bib_assigned: bibs,
+          checked_in:   checkedIn,
         },
       })
     },

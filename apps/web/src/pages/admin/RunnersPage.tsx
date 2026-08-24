@@ -96,6 +96,7 @@ export default function RunnersPage() {
           <option value="submitted">Submitted</option>
           <option value="verified">Verified</option>
           <option value="rejected">Rejected</option>
+          <option value="checked_in">Checked In</option>
         </select>
       </div>
 
@@ -112,6 +113,7 @@ export default function RunnersPage() {
                 <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Certificate uploaded">Cert</th>
                 <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Dog photo uploaded">Photo</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Checked in">In</th>
               </tr>
             </thead>
             <tbody className="divide-y t-table-divider t-bg-surface">
@@ -141,15 +143,21 @@ export default function RunnersPage() {
                       {r.submission_status}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                    {r.checked_in
+                      ? <svg className="w-4 h-4 text-emerald-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      : <span className="w-4 h-4 inline-block"/>
+                    }
+                  </td>
                 </tr>
               ))}
               {!loading && runners.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-12 text-center t-text-muted text-sm">
+                <tr><td colSpan={8} className="px-4 py-12 text-center t-text-muted text-sm">
                   {q ? `No runners matching "${q}"` : 'No runners found'}
                 </td></tr>
               )}
               {loading && runners.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-12 text-center">
+                <tr><td colSpan={8} className="px-4 py-12 text-center">
                   <div className="flex items-center justify-center gap-2 t-text-muted text-sm">
                     <svg className="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                     Loading…

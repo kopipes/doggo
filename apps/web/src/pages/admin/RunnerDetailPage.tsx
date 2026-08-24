@@ -172,6 +172,14 @@ export default function RunnerDetailPage() {
     navigate('/admin/runners')
   }
 
+  async function handleUndoCheckIn() {
+    if (!runner) return
+    if (!confirm(`Undo check-in for ${runner.first_name} ${runner.last_name}?`)) return
+    const res = await api.delete(`/checkin/${id}`, token)
+    if (!res.ok) { alert((res as any).error); return }
+    load()
+  }
+
   if (!runner) return (
     <div className="flex items-center justify-center py-24">
       {error
@@ -227,6 +235,43 @@ export default function RunnerDetailPage() {
               <dd className="t-text-primary font-medium break-all">{value ?? '—'}</dd>
             </div>
           ))}
+        </div>
+
+        {/* Check-In Status */}
+        <div className={`t-card border rounded-2xl p-4 flex items-center justify-between gap-3 ${
+          runner.checked_in ? 'border-emerald-500/40' : 't-border'
+        }`}>
+          <div className="flex items-center gap-2.5">
+            {runner.checked_in ? (
+              <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-full t-bg-raised border t-border flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 t-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-semibold t-text-primary">
+                {runner.checked_in ? 'Checked In' : 'Not Checked In'}
+              </p>
+              {runner.checked_in && runner.checked_in_at && (
+                <p className="text-xs t-text-muted">
+                  {new Date(runner.checked_in_at + 'Z').toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+          {runner.checked_in && (
+            <button onClick={handleUndoCheckIn}
+              className="shrink-0 text-xs t-text-muted hover:text-red-500 border t-border hover:border-red-500/30 px-2.5 py-1.5 rounded-lg transition-colors">
+              Undo
+            </button>
+          )}
         </div>
 
         {/* Bib Assignment */}

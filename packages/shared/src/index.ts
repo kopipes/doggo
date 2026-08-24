@@ -23,6 +23,8 @@ export interface Runner {
   shirt_size: string | null
   collar_size: string | null
   notes: string | null
+  checked_in: number        // 1 if checked in, 0 otherwise
+  checked_in_at: string | null
   created_at: string
   updated_at: string
 }
@@ -39,6 +41,8 @@ export type RunnerSummary = Pick<
   | 'ticket_name'
   | 'shirt_size'
   | 'collar_size'
+  | 'checked_in'
+  | 'checked_in_at'
 > & {
   has_cert: number       // 1 if at least one cert uploaded, 0 otherwise
   has_dog_photo: number  // 1 if dog photo uploaded, 0 otherwise

@@ -13,6 +13,7 @@ import { fileRoutes } from './routes/files'
 import { importRoutes } from './routes/import'
 import { settingsRoutes } from './routes/settings'
 import { crewRoutes } from './routes/crew'
+import { checkinRoutes } from './routes/checkin'
 import { staffRoutes } from './routes/staff'
 import { auditRoutes } from './routes/audit'
 import { statsRoutes } from './routes/stats'
@@ -52,6 +53,7 @@ async function main() {
   await app.register(importRoutes, { prefix: '/api/import' })
   await app.register(settingsRoutes, { prefix: '/api/settings' })
   await app.register(crewRoutes, { prefix: '/api/crew' })
+  await app.register(checkinRoutes, { prefix: '/api/checkin' })
   await app.register(staffRoutes, { prefix: '/api/staff' })
   await app.register(auditRoutes, { prefix: '/api/audit' })
   await app.register(statsRoutes, { prefix: '/api/stats' })

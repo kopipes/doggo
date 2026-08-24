@@ -110,6 +110,13 @@ function runMigrations(db: Database.Database) {
         ALTER TABLE runners ADD COLUMN cert_file_key_3 TEXT;
       `,
     },
+    {
+      version: 4,
+      sql: `
+        ALTER TABLE runners ADD COLUMN checked_in INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE runners ADD COLUMN checked_in_at TEXT;
+      `,
+    },
   ]
 
   for (const m of migrations) {

@@ -9,6 +9,7 @@ type Stats = {
   verified: number
   rejected: number
   bib_assigned: number
+  checked_in: number
 }
 
 function StatCard({ label, value, color, icon }: {
@@ -49,7 +50,7 @@ export default function DashboardPage() {
     : 0
 
   const verifyRate = stats && stats.total > 0
-    ? Math.round(stats.verified / stats.total * 100)
+    ? Math.round(stats.checked_in / stats.total * 100)
     : 0
 
   return (
@@ -86,8 +87,8 @@ export default function DashboardPage() {
               icon={<svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>}
             />
             <StatCard
-              label="Total Verified"
-              value={stats.verified}
+              label="Total Check-In"
+              value={stats.checked_in}
               color="bg-emerald-500/15"
               icon={<svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
             />
@@ -138,7 +139,7 @@ export default function DashboardPage() {
               <div className="h-2 t-bg-raised rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${verifyRate}%` }}/>
               </div>
-              <p className="text-xs t-text-muted mt-1">{stats.verified} dari {stats.total} peserta telah verified</p>
+              <p className="text-xs t-text-muted mt-1">{stats.checked_in} dari {stats.total} peserta telah check-in</p>
             </div>
           </div>
 
