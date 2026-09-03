@@ -57,7 +57,7 @@ export async function runnerRoutes(app: FastifyInstance) {
       const runner = db
         .prepare(
           `SELECT id, ticket_id, first_name, last_name, email, phone,
-                  bib_number, submission_status, notes,
+                  bib_number, submission_status, notes, uploads_locked,
                   (cert_file_key IS NOT NULL) as has_cert,
                   (cert_file_key_2 IS NOT NULL) as has_cert_2,
                   (cert_file_key_3 IS NOT NULL) as has_cert_3,
