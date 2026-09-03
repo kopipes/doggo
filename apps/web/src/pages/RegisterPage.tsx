@@ -385,16 +385,28 @@ export default function RegisterPage() {
                 <p className="text-red-600 text-sm">Your submission was rejected. Please contact the event organizer.</p>
               </div>
             )}
-            {bibLocked && runner.submission_status !== 'verified' && runner.submission_status !== 'rejected' && (
+            {runner.bib_number && !uploadsLocked && runner.submission_status !== 'verified' && runner.submission_status !== 'rejected' && (
+              <div className="flex items-start gap-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl px-5 py-4">
+                <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                </svg>
+                <div>
+                  <p className="text-blue-600 font-semibold text-sm">Bib #{runner.bib_number} assigned</p>
+                  <p className="text-blue-600/80 text-xs mt-0.5">
+                    Please complete your submission by uploading your vaccine certificate and dog photo. Your data will be locked once both are uploaded.
+                  </p>
+                </div>
+              </div>
+            )}
+            {uploadsLocked && runner.submission_status !== 'verified' && runner.submission_status !== 'rejected' && (
               <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-5 py-4">
                 <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
                 </svg>
                 <div>
-                  <p className="text-amber-600 font-semibold text-sm">Uploads locked</p>
+                  <p className="text-amber-600 font-semibold text-sm">Submission locked</p>
                   <p className="text-amber-600/80 text-xs mt-0.5">
-                    Bib number <strong>#{runner.bib_number}</strong> has been assigned to your ticket.
-                    Document uploads are no longer accepted. Contact the event organizer if you need to make changes.
+                    Your submission has been locked{runner.bib_number ? ` — Bib #${runner.bib_number} assigned` : ''}. Contact the event organizer if you need to make changes.
                   </p>
                 </div>
               </div>
