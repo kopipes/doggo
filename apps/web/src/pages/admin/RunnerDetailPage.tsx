@@ -95,6 +95,7 @@ export default function RunnerDetailPage() {
   const [bibAvailable, setBibAvailable] = useState<{ suggestions: string[]; next: string | null; total_available: number } | null>(null)
   const [bibCheck, setBibCheck] = useState<'idle' | 'checking' | 'ok' | 'taken'>('idle')
   const bibCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [lockSaving, setLockSaving] = useState(false)
 
   async function load() {
     const res = await api.get<Runner>(`/runners/${id}`, token)
@@ -272,6 +273,50 @@ export default function RunnerDetailPage() {
               Undo
             </button>
           )}
+        </div>
+
+        {/* Upload Lock */}
+        <div className={`t-card border rounded-2xl p-4 flex items-center justify-between gap-3 ${
+          runner.uploads_locked ? 'border-amber-500/40' : 't-border'
+        }`}>
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              runner.uploads_locked ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-gray-500/10 border t-border'
+            }`}>
+              <svg className={`w-4 h-4 ${runner.uploads_locked ? 'text-amber-500' : 't-text-muted'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                {runner.uploads_locked
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                }
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium t-text-primary">
+                {runner.uploads_locked ? 'Uploads Locked' : 'Uploads Open'}
+              </p>
+              <p className="text-xs t-text-muted">
+                {runner.uploads_locked
+                  ? 'Runner cannot upload or replace files'
+                  : 'Runner can still upload cert and photo'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              setLockSaving(true)
+              const res = await api.patch(`/runners/${id}`, { uploads_locked: runner.uploads_locked ? 0 : 1 }, token)
+              if (res.ok) load()
+              setLockSaving(false)
+            }}
+            disabled={lockSaving}
+            className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
+              runner.uploads_locked
+                ? 't-text-muted border t-border hover:text-emerald-600 hover:border-emerald-500/30'
+                : 'text-amber-600 border-amber-500/30 hover:bg-amber-500/10'
+            }`}
+          >
+            {lockSaving ? '…' : runner.uploads_locked ? 'Unlock' : 'Lock'}
+          </button>
         </div>
 
         {/* Bib Assignment */}

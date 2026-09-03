@@ -96,6 +96,16 @@ export async function bibRoutes(app: FastifyInstance) {
         `UPDATE runners SET bib_number = ?, updated_at = datetime('now') WHERE id = ?`,
       ).run(bib_number, runner.id)
 
+      // Auto-lock if runner already has cert + photo (Scenario A: upload first, bib assigned later)
+      const fullRunner = db.prepare(
+        'SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners WHERE id = ?'
+      ).get(runner.id) as any
+      const hasCert = fullRunner.cert_file_key || fullRunner.cert_file_key_2 || fullRunner.cert_file_key_3
+      if (hasCert && fullRunner.dog_photo_key) {
+        db.prepare(`UPDATE runners SET uploads_locked = 1, updated_at = datetime('now') WHERE id = ?`).run(runner.id)
+        audit(payload.sub, payload.role, 'auto_lock', 'runners', runner.id, 'bib assigned + cert+photo complete')
+      }
+
       audit(payload.sub, payload.role, 'assign_bib', 'runners', runner.id, `bib=${bib_number}`)
 
       return reply.send({ ok: true, data: { ticket_id, bib_number } })

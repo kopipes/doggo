@@ -14,7 +14,7 @@ const STATUS_BADGE: Record<string, string> = {
 const DEBOUNCE_MS = 300
 
 export default function RunnersPage() {
-  const { token } = useAuth()
+  const { token, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [runners, setRunners] = useState<RunnerSummary[]>([])
   const [total, setTotal] = useState(0)
@@ -26,11 +26,16 @@ export default function RunnersPage() {
   const abortRef = useRef<AbortController | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Multi-select
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [bulkLocking, setBulkLocking] = useState(false)
+
   const fetchRunners = useCallback(async (qVal: string, statusVal: string, pageVal: number) => {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
     setLoading(true)
+    setSelected(new Set())
     const params = new URLSearchParams({ page: String(pageVal), limit: '50' })
     if (qVal) params.set('q', qVal)
     if (statusVal) params.set('status', statusVal)
@@ -56,6 +61,34 @@ export default function RunnersPage() {
     debounceRef.current = setTimeout(() => { setPage(1); fetchRunners(value, status, 1) }, DEBOUNCE_MS)
   }
 
+  function toggleSelect(id: number, e: React.MouseEvent) {
+    e.stopPropagation()
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === runners.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(runners.map(r => r.id)))
+    }
+  }
+
+  async function handleBulkLock(locked: boolean) {
+    if (selected.size === 0) return
+    setBulkLocking(true)
+    try {
+      const res = await api.post('/runners/lock-bulk', { ids: Array.from(selected), locked }, token)
+      if (res.ok) { setSelected(new Set()); fetchRunners(q, status, page) }
+    } finally {
+      setBulkLocking(false)
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -63,40 +96,50 @@ export default function RunnersPage() {
           <h1 className="text-lg font-bold t-text-primary">Runners</h1>
           <p className="text-xs t-text-muted mt-0.5">{total.toLocaleString()} total</p>
         </div>
+        {/* Bulk lock actions */}
+        {isAdmin && selected.size > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs t-text-muted">{selected.size} selected</span>
+            <button onClick={() => handleBulkLock(true)} disabled={bulkLocking}
+              className="text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+              Lock
+            </button>
+            <button onClick={() => handleBulkLock(false)} disabled={bulkLocking}
+              className="text-xs border t-border t-text-muted hover:t-text-primary disabled:opacity-50 px-3 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+              Unlock
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Search — stacks on mobile */}
+      {/* Search + filter */}
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
           {searching
             ? <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
             : <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 t-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
           }
-          <input
-            type="text"
-            placeholder="Search name, email, ticket…"
-            value={q}
+          <input type="text" placeholder="Search name, email, ticket…" value={q}
             onChange={(e) => handleQChange(e.target.value)}
-            className="t-input w-full border rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-            autoFocus
-          />
+            className="t-input w-full border rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" autoFocus/>
           {q && (
             <button onClick={() => handleQChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 t-text-muted hover:t-text-primary">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           )}
         </div>
-        <select
-          value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-          className="t-select border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-        >
+        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }}
+          className="t-select border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40">
           <option value="">All statuses</option>
           <option value="pending">Pending</option>
           <option value="submitted">Submitted</option>
           <option value="verified">Verified</option>
           <option value="rejected">Rejected</option>
           <option value="checked_in">Checked In</option>
+          <option value="no_photo">Missing Photo</option>
+          <option value="no_cert">Missing Cert</option>
         </select>
       </div>
 
@@ -106,6 +149,13 @@ export default function RunnersPage() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b t-border t-table-header">
+                {isAdmin && (
+                  <th className="px-3 py-3">
+                    <input type="checkbox" checked={runners.length > 0 && selected.size === runners.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+                  </th>
+                )}
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Ticket ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Email</th>
@@ -114,12 +164,20 @@ export default function RunnersPage() {
                 <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Dog photo uploaded">Photo</th>
                 <th className="px-4 py-3 text-left text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap">Status</th>
                 <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Checked in">In</th>
+                <th className="px-4 py-3 text-center text-xs font-medium t-text-muted uppercase tracking-wider whitespace-nowrap" title="Uploads locked">🔒</th>
               </tr>
             </thead>
             <tbody className="divide-y t-table-divider t-bg-surface">
               {runners.map((r) => (
-                <tr key={r.id} className="t-table-row cursor-pointer transition-colors active:opacity-70"
+                <tr key={r.id}
+                  className={`t-table-row cursor-pointer transition-colors active:opacity-70 ${selected.has(r.id) ? 'bg-blue-500/5' : ''}`}
                   onClick={() => navigate(`/admin/runners/${r.id}`)}>
+                  {isAdmin && (
+                    <td className="px-3 py-3" onClick={(e) => toggleSelect(r.id, e)}>
+                      <input type="checkbox" checked={selected.has(r.id)} onChange={() => {}}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"/>
+                    </td>
+                  )}
                   <td className="px-4 py-3 font-mono text-xs t-text-muted whitespace-nowrap">{r.ticket_id}</td>
                   <td className="px-4 py-3 t-text-primary font-medium whitespace-nowrap">
                     {r.first_name}{r.last_name ? ` ${r.last_name}` : ''}
@@ -149,21 +207,14 @@ export default function RunnersPage() {
                       : <span className="w-4 h-4 inline-block"/>
                     }
                   </td>
+                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                    {r.uploads_locked
+                      ? <svg className="w-4 h-4 text-amber-500 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                      : <span className="w-4 h-4 inline-block"/>
+                    }
+                  </td>
                 </tr>
               ))}
-              {!loading && runners.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-12 text-center t-text-muted text-sm">
-                  {q ? `No runners matching "${q}"` : 'No runners found'}
-                </td></tr>
-              )}
-              {loading && runners.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-12 text-center">
-                  <div className="flex items-center justify-center gap-2 t-text-muted text-sm">
-                    <svg className="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-                    Loading…
-                  </div>
-                </td></tr>
-              )}
             </tbody>
           </table>
         </div>

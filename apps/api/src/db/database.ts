@@ -117,6 +117,12 @@ function runMigrations(db: Database.Database) {
         ALTER TABLE runners ADD COLUMN checked_in_at TEXT;
       `,
     },
+    {
+      version: 5,
+      sql: `
+        ALTER TABLE runners ADD COLUMN uploads_locked INTEGER NOT NULL DEFAULT 0;
+      `,
+    },
   ]
 
   for (const m of migrations) {

@@ -24,6 +24,10 @@ export async function runnerRoutes(app: FastifyInstance) {
     }
     if (status === 'checked_in') {
       where += ` AND checked_in = 1`
+    } else if (status === 'no_photo') {
+      where += ` AND dog_photo_key IS NULL`
+    } else if (status === 'no_cert') {
+      where += ` AND cert_file_key IS NULL AND cert_file_key_2 IS NULL AND cert_file_key_3 IS NULL`
     } else if (status) {
       where += ` AND submission_status = ?`
       params.push(status)
@@ -31,7 +35,7 @@ export async function runnerRoutes(app: FastifyInstance) {
 
     const runners = db.prepare(
       `SELECT id, ticket_id, first_name, last_name, email, bib_number, submission_status,
-              ticket_name, shirt_size, collar_size, checked_in, checked_in_at,
+              ticket_name, shirt_size, collar_size, checked_in, checked_in_at, uploads_locked,
               CASE WHEN cert_file_key IS NOT NULL OR cert_file_key_2 IS NOT NULL OR cert_file_key_3 IS NOT NULL THEN 1 ELSE 0 END as has_cert,
               CASE WHEN dog_photo_key IS NOT NULL THEN 1 ELSE 0 END as has_dog_photo
        FROM runners ${where}
@@ -88,7 +92,7 @@ export async function runnerRoutes(app: FastifyInstance) {
       const db = getDb()
       const existing = db.prepare('SELECT bib_number FROM runners WHERE id = ?').get(Number(req.params.id)) as any
       if (!existing) return reply.code(404).send({ ok: false, error: 'Runner not found' })
-      const allowed = ['first_name', 'last_name', 'email', 'phone', 'submission_status', 'notes']
+      const allowed = ['first_name', 'last_name', 'email', 'phone', 'submission_status', 'notes', 'uploads_locked']
       const updates = Object.entries(req.body).filter(([k]) => allowed.includes(k))
       if (!updates.length) return reply.code(400).send({ ok: false, error: 'No valid fields' })
 
@@ -104,6 +108,26 @@ export async function runnerRoutes(app: FastifyInstance) {
 
       const runner = db.prepare('SELECT * FROM runners WHERE id = ?').get(Number(req.params.id))
       return reply.send({ ok: true, data: runner })
+    },
+  )
+
+  // POST /api/runners/lock-bulk — admin locks uploads for selected runner IDs
+  app.post<{ Body: { ids: number[]; locked: boolean } }>(
+    '/lock-bulk',
+    { preHandler: requireAdmin },
+    async (req, reply) => {
+      const { ids, locked } = req.body
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return reply.code(400).send({ ok: false, error: 'ids array required' })
+      }
+      const db = getDb()
+      const placeholders = ids.map(() => '?').join(',')
+      db.prepare(
+        `UPDATE runners SET uploads_locked = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`
+      ).run(locked ? 1 : 0, ...ids)
+      const payload = req.user as JwtPayload
+      audit(payload.sub, payload.role, locked ? 'bulk_lock' : 'bulk_unlock', 'runners', 'bulk', `ids=${ids.join(',')}`)
+      return reply.send({ ok: true, data: { updated: ids.length, locked } })
     },
   )
 

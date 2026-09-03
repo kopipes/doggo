@@ -25,11 +25,11 @@ export async function fileRoutes(app: FastifyInstance) {
         .get(req.params.ticketId.toUpperCase()) as any
       if (!runner) return reply.code(404).send({ ok: false, error: 'Ticket ID not found' })
 
-      // Block uploads after bib is assigned
-      if (runner.bib_number) {
+      // Block uploads if manually or auto locked
+      if (runner.uploads_locked) {
         return reply.code(403).send({
           ok: false,
-          error: 'Uploads are locked — a bib number has already been assigned to this ticket.',
+          error: 'Uploads are locked for this ticket.',
         })
       }
 
@@ -91,6 +91,17 @@ export async function fileRoutes(app: FastifyInstance) {
 
       // Determine if this is a first-time submission (no files existed before this upload)
       const isFirstSubmission = !runner.cert_file_key && !runner.cert_file_key_2 && !runner.cert_file_key_3 && !runner.dog_photo_key
+
+      // Auto-lock if now has at least 1 cert AND dog photo
+      const afterState = db.prepare(
+        'SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners WHERE id = ?'
+      ).get(runner.id) as any
+      const hasCertNow = afterState.cert_file_key || afterState.cert_file_key_2 || afterState.cert_file_key_3
+      const hasPhotoNow = afterState.dog_photo_key
+      if (hasCertNow && hasPhotoNow) {
+        db.prepare(`UPDATE runners SET uploads_locked = 1, updated_at = datetime('now') WHERE id = ?`).run(runner.id)
+        audit(null, 'user', 'auto_lock', 'runners', runner.id, 'cert+photo complete')
+      }
 
       // Only send confirmation email on first submission
       if (isFirstSubmission) {

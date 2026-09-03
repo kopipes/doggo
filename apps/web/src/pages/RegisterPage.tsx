@@ -128,6 +128,7 @@ export default function RegisterPage() {
   const [completionVisible, setCompletionVisible] = useState(false)
   const [doneModalVisible, setDoneModalVisible] = useState(false)
   const [isFirstSubmission, setIsFirstSubmission] = useState(false)
+  const [lockWarning, setLockWarning] = useState<{ fieldName: string; file: File; setSlot: (s: SlotState) => void } | null>(null)
 
   const [certSlots, setCertSlots] = useState<SlotState[]>([
     { state: 'idle' }, { state: 'idle' }, { state: 'idle' },
@@ -170,15 +171,35 @@ export default function RegisterPage() {
     }
   }
 
+  function willCompleteLockCondition(fieldName: string): boolean {
+    if (!runner) return false
+    const hasCertAlready = runner.has_cert === 1 || runner.has_cert_2 === 1 || runner.has_cert_3 === 1
+    const hasPhotoAlready = runner.has_dog_photo === 1
+    const uploadingCert = fieldName.startsWith('cert')
+    const uploadingPhoto = fieldName === 'dog_photo'
+    const willHaveCert = hasCertAlready || uploadingCert
+    const willHavePhoto = hasPhotoAlready || uploadingPhoto
+    return willHaveCert && willHavePhoto && !(hasCertAlready && hasPhotoAlready)
+  }
+
+  function requestUpload(fieldName: string, file: File, setSlot: (s: SlotState) => void) {
+    if (willCompleteLockCondition(fieldName)) {
+      setLockWarning({ fieldName, file, setSlot })
+    } else {
+      uploadFile(fieldName, file, setSlot)
+    }
+  }
+
   function handleCertFile(index: number, file: File) {
     const fieldNames = ['cert', 'cert_2', 'cert_3']
+    const fieldName = fieldNames[index]
     setCertSlots(s => { const n = [...s]; n[index] = { state: 'uploading' }; return n })
-    uploadFile(fieldNames[index], file, (s) => setCertSlots(prev => { const n = [...prev]; n[index] = s; return n }))
+    requestUpload(fieldName, file, (s) => setCertSlots(prev => { const n = [...prev]; n[index] = s; return n }))
   }
 
   function handleDogFile(file: File) {
     setDogSlot({ state: 'uploading' })
-    uploadFile('dog_photo', file, setDogSlot)
+    requestUpload('dog_photo', file, setDogSlot)
   }
 
   const certSlotHasFile = (i: number) =>
@@ -186,8 +207,9 @@ export default function RegisterPage() {
 
   const certSlotsToShow = runner ? Math.min(Math.max(runner.cert_count + 1, 1), MAX_CERTS) : 1
   const bibLocked = runner && !!runner.bib_number
+  const uploadsLocked = runner && (runner as any).uploads_locked === 1
   const canUpload = runner
-    && !bibLocked
+    && !uploadsLocked
     && runner.submission_status !== 'verified'
     && runner.submission_status !== 'rejected'
   const statusCfg = runner ? STATUS_CONFIG[runner.submission_status] : null
@@ -429,6 +451,46 @@ export default function RegisterPage() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lock warning modal — shown before upload that will complete cert+photo set */}
+      {lockWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+          <div className="t-card border t-border rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-amber-500/15 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+              </svg>
+            </div>
+            <h3 className="t-text-primary text-base font-bold text-center mb-2">Data will be locked!</h3>
+            <p className="text-sm t-text-muted text-center mb-5">
+              After uploading this file, your certificate and dog photo will be complete. <strong className="t-text-primary">Your submission will be locked and cannot be updated after this.</strong>
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  // Reset the slot back to idle on cancel
+                  const { setSlot } = lockWarning
+                  setSlot({ state: 'idle' })
+                  setLockWarning(null)
+                }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold t-text-muted border t-border hover:t-text-primary transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const { fieldName, file, setSlot } = lockWarning
+                  setLockWarning(null)
+                  uploadFile(fieldName, file, setSlot)
+                }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-white transition-colors"
+              >
+                Yes, upload & lock
+              </button>
+            </div>
           </div>
         </div>
       )}
