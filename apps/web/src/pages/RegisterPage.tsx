@@ -399,15 +399,50 @@ export default function RegisterPage() {
               </div>
             )}
             {uploadsLocked && runner.submission_status !== 'verified' && runner.submission_status !== 'rejected' && (
-              <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-5 py-4">
-                <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
-                </svg>
-                <div>
-                  <p className="text-amber-600 font-semibold text-sm">Submission locked</p>
-                  <p className="text-amber-600/80 text-xs mt-0.5">
-                    Your submission has been locked{runner.bib_number ? ` — Bib #${runner.bib_number} assigned` : ''}. Contact the event organizer if you need to make changes.
-                  </p>
+              <div className="t-card border border-emerald-500/30 rounded-2xl p-5 space-y-3">
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-emerald-600 font-bold text-sm">Submission Complete & Locked</p>
+                    <p className="text-emerald-600/70 text-xs">Your data is confirmed and secured</p>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 pt-1 border-t border-emerald-500/20">
+                  {runner.bib_number && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs t-text-muted">Bib Number</span>
+                      <span className="font-mono font-bold text-blue-500 text-sm">#{runner.bib_number}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs t-text-muted">Vaccine Certificate</span>
+                    <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      Uploaded
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs t-text-muted">Dog Photo</span>
+                    <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      Uploaded
+                    </span>
+                  </div>
+                </div>
+
+                {/* Lock notice */}
+                <div className="flex items-center gap-2 bg-amber-500/10 rounded-xl px-3 py-2">
+                  <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                  </svg>
+                  <p className="text-xs text-amber-600">Your data is locked. Contact the event organizer if you need to make changes.</p>
                 </div>
               </div>
             )}
