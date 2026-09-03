@@ -173,6 +173,7 @@ export default function RegisterPage() {
 
   function willCompleteLockCondition(fieldName: string): boolean {
     if (!runner) return false
+    if (!runner.bib_number) return false  // no bib = no lock
     const hasCertAlready = runner.has_cert === 1 || runner.has_cert_2 === 1 || runner.has_cert_3 === 1
     const hasPhotoAlready = runner.has_dog_photo === 1
     const uploadingCert = fieldName.startsWith('cert')

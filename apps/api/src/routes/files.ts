@@ -92,15 +92,15 @@ export async function fileRoutes(app: FastifyInstance) {
       // Determine if this is a first-time submission (no files existed before this upload)
       const isFirstSubmission = !runner.cert_file_key && !runner.cert_file_key_2 && !runner.cert_file_key_3 && !runner.dog_photo_key
 
-      // Auto-lock if now has at least 1 cert AND dog photo
+      // Auto-lock only if bib is assigned AND now has at least 1 cert AND dog photo
       const afterState = db.prepare(
         'SELECT cert_file_key, cert_file_key_2, cert_file_key_3, dog_photo_key FROM runners WHERE id = ?'
       ).get(runner.id) as any
       const hasCertNow = afterState.cert_file_key || afterState.cert_file_key_2 || afterState.cert_file_key_3
       const hasPhotoNow = afterState.dog_photo_key
-      if (hasCertNow && hasPhotoNow) {
+      if (runner.bib_number && hasCertNow && hasPhotoNow) {
         db.prepare(`UPDATE runners SET uploads_locked = 1, updated_at = datetime('now') WHERE id = ?`).run(runner.id)
-        audit(null, 'user', 'auto_lock', 'runners', runner.id, 'cert+photo complete')
+        audit(null, 'user', 'auto_lock', 'runners', runner.id, 'bib+cert+photo complete')
       }
 
       // Only send confirmation email on first submission
