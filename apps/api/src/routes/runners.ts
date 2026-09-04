@@ -18,9 +18,9 @@ export async function runnerRoutes(app: FastifyInstance) {
     const params: any[] = []
 
     if (q) {
-      where += ` AND (ticket_id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR email LIKE ?)`
+      where += ` AND (ticket_id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR bib_number LIKE ?)`
       const like = `%${q}%`
-      params.push(like, like, like, like)
+      params.push(like, like, like, like, like)
     }
     if (status === 'checked_in') {
       where += ` AND checked_in = 1`
