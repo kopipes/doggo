@@ -53,6 +53,10 @@ export default function DashboardPage() {
     ? Math.round(stats.checked_in / stats.total * 100)
     : 0
 
+  const bibRate = stats && stats.total > 0
+    ? Math.round(stats.bib_assigned / stats.total * 100)
+    : 0
+
   return (
     <div className="max-w-2xl">
       {/* Header */}
@@ -140,6 +144,17 @@ export default function DashboardPage() {
                 <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${verifyRate}%` }}/>
               </div>
               <p className="text-xs t-text-muted mt-1">{stats.checked_in} dari {stats.total} peserta telah check-in</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="t-text-muted">Bib Assignment Rate</span>
+                <span className="t-text-primary font-medium">{bibRate}%</span>
+              </div>
+              <div className="h-2 t-bg-raised rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${bibRate}%` }}/>
+              </div>
+              <p className="text-xs t-text-muted mt-1">{stats.bib_assigned} dari {stats.total} peserta telah assign bib</p>
             </div>
           </div>
 
