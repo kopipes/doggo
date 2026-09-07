@@ -3,7 +3,6 @@ import { getDb } from '../db/database'
 import { requireAdmin, requireOfficial } from '../middleware/auth'
 import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
-import { getFileUrl } from '../services/storage'
 
 const MAX_LIMIT = 200
 
@@ -105,23 +104,15 @@ export async function runnerRoutes(app: FastifyInstance) {
 
     const total = (db.prepare(`SELECT COUNT(*) as n FROM runners ${where}`).get(...params) as any).n
 
-    // Resolve photo URLs
-    const items = await Promise.all(
-      runners.map(async (r) => {
-        let photo_url: string | null = null
-        if (r.dog_photo_key) {
-          try {
-            photo_url = await getFileUrl(r.dog_photo_key)
-          } catch {
-            photo_url = null
-          }
-        }
-        return {
-          ...r,
-          photo_url,
-        }
-      })
-    )
+    // Resolve photo URLs — thumbnail for the grid, full image for the viewer
+    const items = runners.map((r) => {
+      const isImage = r.dog_photo_key && !r.dog_photo_key.toLowerCase().endsWith('.pdf')
+      return {
+        ...r,
+        photo_url: r.dog_photo_key ? `/api/files/${encodeURIComponent(r.dog_photo_key)}` : null,
+        photo_thumb_url: isImage ? `/api/files/thumb/${encodeURIComponent(r.dog_photo_key)}` : null,
+      }
+    })
 
     return reply.send({ ok: true, data: { runners: items, total } })
   })

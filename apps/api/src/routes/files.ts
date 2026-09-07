@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 import { getDb } from '../db/database'
 import { saveFile, getFileUrl, getLocalFilePath, deleteFile, listFiles } from '../services/storage'
+import { getThumbnailPath } from '../services/thumbnail'
 import { sendSubmissionConfirmation } from '../services/email'
 import { audit } from '../services/audit'
 import { requireAdmin } from '../middleware/auth'
@@ -233,6 +234,21 @@ export async function fileRoutes(app: FastifyInstance) {
     },
   )
 
+  // GET /api/files/thumb/:key — serve cached thumbnail for an image
+  app.get<{ Params: { key: string } }>(
+    '/thumb/:key',
+    async (req, reply) => {
+      if (process.env.STORAGE_DRIVER === 's3') {
+        return reply.code(400).send({ ok: false, error: 'Use signed URL for S3' })
+      }
+      const thumbPath = await getThumbnailPath(req.params.key).catch(() => null)
+      if (!thumbPath) return reply.code(404).send({ ok: false, error: 'Thumbnail not available' })
+      reply.header('Content-Type', 'image/webp')
+      reply.header('Cache-Control', 'public, max-age=604800, immutable')
+      return reply.send(fs.createReadStream(thumbPath))
+    },
+  )
+
   // GET /api/files/:key — serve local file (dev only; in prod use S3 signed URLs)
   app.get<{ Params: { key: string } }>(
     '/:key',
@@ -251,6 +267,7 @@ export async function fileRoutes(app: FastifyInstance) {
       }
       const contentType = mimeMap[ext] ?? 'application/octet-stream'
       reply.header('Content-Type', contentType)
+      reply.header('Cache-Control', 'public, max-age=604800, immutable')
       return reply.send(fs.createReadStream(filePath))
     },
   )

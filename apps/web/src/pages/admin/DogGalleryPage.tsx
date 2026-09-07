@@ -111,13 +111,13 @@ export default function DogGalleryPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {items.map((r) => (
               <div key={r.id} className="t-card border t-border rounded-2xl overflow-hidden group">
-                {/* Photo */}
+                {/* Photo — thumbnail in grid, full image on click */}
                 <button
                   onClick={() => r.photo_url && setModalUrl(r.photo_url)}
                   className="block w-full aspect-square t-bg-raised focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                 >
-                  {r.photo_url ? (
-                    <img src={r.photo_url} alt={`${r.first_name}'s dog`} loading="lazy"
+                  {r.photo_thumb_url || r.photo_url ? (
+                    <img src={r.photo_thumb_url ?? r.photo_url!} alt={`${r.first_name}'s dog`} loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

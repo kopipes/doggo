@@ -67,6 +67,7 @@ export interface DogGalleryItem {
   uploads_locked: number
   dog_photo_key: string
   photo_url: string | null
+  photo_thumb_url: string | null
 }
 
 // ─── Staff accounts ──────────────────────────────────────────────────────────

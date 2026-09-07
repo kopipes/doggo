@@ -16,7 +16,7 @@ export interface StoredFile {
 }
 
 const driver = process.env.STORAGE_DRIVER ?? 'local'
-const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? './uploads')
+export const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? './uploads')
 
 let s3: S3Client | null = null
 const s3Bucket = process.env.S3_BUCKET ?? ''
