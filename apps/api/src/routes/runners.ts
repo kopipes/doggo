@@ -3,6 +3,7 @@ import { getDb } from '../db/database'
 import { requireAdmin, requireOfficial } from '../middleware/auth'
 import { JwtPayload } from '@petreg/shared'
 import { audit } from '../services/audit'
+import { getFileUrl } from '../services/storage'
 
 const MAX_LIMIT = 200
 
@@ -71,6 +72,59 @@ export async function runnerRoutes(app: FastifyInstance) {
       return reply.send({ ok: true, data: runner })
     },
   )
+
+  // GET /api/runners/gallery — staff: gallery of runners with dog photos
+  app.get('/gallery', { preHandler: requireOfficial }, async (req, reply) => {
+    const db = getDb()
+    const { q, status, page = '1', limit: limitStr = '20' } = req.query as Record<string, string>
+    const limit = Math.min(Math.max(1, Number(limitStr)), MAX_LIMIT)
+    const offset = (Math.max(1, Number(page)) - 1) * limit
+
+    let where = 'WHERE dog_photo_key IS NOT NULL'
+    const params: any[] = []
+
+    if (q) {
+      where += ` AND (ticket_id LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR bib_number LIKE ? OR ticket_name LIKE ?)`
+      const like = `%${q}%`
+      params.push(like, like, like, like, like, like)
+    }
+    if (status === 'checked_in') {
+      where += ` AND checked_in = 1`
+    } else if (status) {
+      where += ` AND submission_status = ?`
+      params.push(status)
+    }
+
+    const runners = db.prepare(
+      `SELECT id, ticket_id, first_name, last_name, email, phone, bib_number, submission_status,
+              ticket_name, shirt_size, collar_size, checked_in, checked_in_at, uploads_locked,
+              dog_photo_key
+       FROM runners ${where}
+       ORDER BY last_name, first_name LIMIT ? OFFSET ?`,
+    ).all(...params, limit, offset) as any[]
+
+    const total = (db.prepare(`SELECT COUNT(*) as n FROM runners ${where}`).get(...params) as any).n
+
+    // Resolve photo URLs
+    const items = await Promise.all(
+      runners.map(async (r) => {
+        let photo_url: string | null = null
+        if (r.dog_photo_key) {
+          try {
+            photo_url = await getFileUrl(r.dog_photo_key)
+          } catch {
+            photo_url = null
+          }
+        }
+        return {
+          ...r,
+          photo_url,
+        }
+      })
+    )
+
+    return reply.send({ ok: true, data: { runners: items, total } })
+  })
 
   // GET /api/runners/:id — staff full profile
   app.get<{ Params: { id: string } }>(

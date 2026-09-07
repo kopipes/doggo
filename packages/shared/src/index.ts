@@ -50,6 +50,25 @@ export type RunnerSummary = Pick<
   uploads_locked: number
 }
 
+export interface DogGalleryItem {
+  id: number
+  ticket_id: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string | null
+  bib_number: string | null
+  ticket_name: string | null
+  shirt_size: string | null
+  collar_size: string | null
+  submission_status: SubmissionStatus
+  checked_in: number
+  checked_in_at: string | null
+  uploads_locked: number
+  dog_photo_key: string
+  photo_url: string | null
+}
+
 // ─── Staff accounts ──────────────────────────────────────────────────────────
 
 export interface StaffAccount {
